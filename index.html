@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>スプラ3 武器編成ルーレット</title>
 <style>
-*{box-sizing:border-box}body{margin:0;padding:20px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#171923;color:#fff;text-align:center}h1{font-size:25px;margin-bottom:8px}.subtitle{color:#b9bdcc;font-size:14px}.team{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:900px;margin:25px auto}.player{background:#292d3e;border-radius:15px;padding:15px 8px;border:2px solid #474d64;min-width:0}.player h2{font-size:14px;margin:0 0 15px;color:#b9bdcc}.weapon{font-size:16px;font-weight:bold;overflow-wrap:anywhere;line-height:1.5}.kit{font-size:12px;color:#b9bdcc;margin-top:5px;line-height:1.5}.role{margin-top:10px;font-size:13px;color:#ffd85c}.stats{font-size:12px;color:#d2d5e2;margin-top:8px;line-height:1.8}button{border:0;border-radius:12px;padding:15px 25px;font-size:17px;font-weight:bold;cursor:pointer}#roll{background:#d9ff43;color:#171923}#roll:active{transform:scale(.97)}#roll:disabled{opacity:.5;cursor:wait}.summary{max-width:650px;margin:18px auto 0;background:#222638;border-radius:12px;padding:12px;color:#e7e9f2;font-size:13px;line-height:1.8}.status{font-size:12px;color:#b9bdcc;margin-top:12px}.note{max-width:700px;margin:25px auto;color:#b9bdcc;font-size:12px;line-height:1.8;text-align:left}.note a{color:#d9ff43}@media(max-width:420px){body{padding:12px}h1{font-size:22px}.team{gap:6px}.player{padding:12px 4px}.weapon{font-size:14px}.kit{font-size:11px}.role{font-size:12px}.stats{font-size:11px}}
+*{box-sizing:border-box}body{margin:0;padding:20px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#171923;color:#fff;text-align:center}h1{font-size:25px;margin-bottom:8px}.subtitle{color:#b9bdcc;font-size:14px}.team{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:900px;margin:25px auto}.player{background:#292d3e;border-radius:15px;padding:15px 8px;border:2px solid #474d64;min-width:0}.player h2{font-size:14px;margin:0 0 15px;color:#b9bdcc}.weapon-image{width:100%;height:118px;object-fit:contain;display:block;margin:0 auto 8px;filter:drop-shadow(0 4px 8px #0005)}.weapon-image[hidden]{display:none}.weapon{font-size:16px;font-weight:bold;overflow-wrap:anywhere;line-height:1.5}.kit{font-size:12px;color:#b9bdcc;margin-top:5px;line-height:1.5}.role{margin-top:10px;font-size:13px;color:#ffd85c}.stats{font-size:12px;color:#d2d5e2;margin-top:8px;line-height:1.8}button{border:0;border-radius:12px;padding:15px 25px;font-size:17px;font-weight:bold;cursor:pointer}#roll{background:#d9ff43;color:#171923}#roll:active{transform:scale(.97)}#roll:disabled{opacity:.5;cursor:wait}.summary{max-width:650px;margin:18px auto 0;background:#222638;border-radius:12px;padding:12px;color:#e7e9f2;font-size:13px;line-height:1.8}.status{font-size:12px;color:#b9bdcc;margin-top:12px}.note{max-width:700px;margin:25px auto;color:#b9bdcc;font-size:12px;line-height:1.8;text-align:left}.note a{color:#d9ff43}@media(max-width:420px){body{padding:12px}h1{font-size:22px}.team{gap:6px}.player{padding:12px 4px}.weapon-image{height:88px}.weapon{font-size:14px}.kit{font-size:11px}.role{font-size:12px}.stats{font-size:11px}}
 </style>
 </head>
 <body>
@@ -19,14 +19,27 @@
 <strong>抽選ルール</strong><br>
 ・ブキセット単位で抽選（コラボ・カスタム・追加ブキも別扱い）<br>
 ・3人のブキセットは重複なし<br>
-・前衛／中衛／後衛、塗り性能、射程のバランスを点数化し、バランスの良い候補からランダム抽選<br>
+・後衛は最大1人（後衛2人・3人の編成は出ない）<br>・前衛3人など、役割が偏った編成は抽選対象に残す<br>・塗り性能と射程も考慮して、条件内でバランスの良い候補からランダム抽選<br>
 ・役割と塗り性能は、ブキ種・射程などから作った目安。実際の立ち回りやステージによって変わります。<br><br>
 武器データ出典：<a href="https://stat.ink/api-info/weapon3?_lang_=ja-JP" target="_blank" rel="noopener">stat.ink ブキAPI情報</a>。最新データの取得にはインターネット接続が必要です。
 </div>
 <script>
 const API_URL = 'https://stat.ink/api/v3/weapon';
 let weapons = [];
+let imageRows = [];
 const $ = id => document.getElementById(id);
+
+// Leannyの公開ゲームデータからブキ画像のRowIdを取得する。画像取得に失敗しても抽選自体は動作する。
+const IMAGE_DATA_URL = 'https://leanny.github.io/splat3/data/mush/1110/WeaponInfoMain.json';
+const IMAGE_BASE_URL = 'https://leanny.github.io/splat3/images/weapon_flat/Path_Wst_';
+function normalizeLabel(value) { return String(value || '').toLowerCase().replace(/[\s　・･._’'’「」【】()（）-]/g, ''); }
+function findWeaponImage(item) {
+  if (!imageRows.length) return '';
+  const names = [item.name?.ja_JP, item.name?.en_US].filter(Boolean).map(normalizeLabel);
+  const row = imageRows.find(x => names.includes(normalizeLabel(x.Label || x.Name || x.name)));
+  if (!row || row.__RowId == null) return '';
+  return IMAGE_BASE_URL + encodeURIComponent(row.__RowId) + '.png';
+}
 
 function roleAndStats(item) {
   const type = item.type?.key || '';
@@ -62,7 +75,7 @@ function normalizeData(data) {
   // APIの重複レコードをキーで除外
   const unique = new Map();
   list.forEach(w => unique.set(w.key, w));
-  return [...unique.values()];
+  return [...unique.values()].map(w => ({...w, image: findWeaponImage(w)}));
 }
 
 function score(team) {
@@ -80,8 +93,8 @@ function score(team) {
   if (Math.max(...ranges) - Math.min(...ranges) >= 2) s += 2;
   if (longCount >= 1) s += 2;
   if (shortCount >= 1) s += 1;
-  if (roles.filter(r => r === '後衛').length >= 2) s -= 4;
-  if (roles.filter(r => r === '前衛').length === 0) s -= 3;
+  // 後衛が2人以上の編成は createTeam() 側で除外する。
+  // 前衛3人の編成は許可する（前衛に偏る編成も遊びの幅として残す）。
   if (paint <= 6) s -= 4;
   return s;
 }
@@ -98,6 +111,8 @@ function createTeam() {
       const w = weapons[Math.floor(Math.random() * weapons.length)];
       if (!used.has(w.key)) { used.add(w.key); team.push(w); }
     }
+    // 後衛2人以上は不可。前衛3人・中衛多めなどは抽選対象に残す。
+    if (team.filter(w => w.role === '後衛').length >= 2) continue;
     const s = score(team);
     if (s > bestScore) { bestScore = s; candidates = [team]; }
     else if (s >= bestScore - 1) candidates.push(team);
@@ -111,7 +126,7 @@ function renderTeam() {
   $('team').innerHTML = team.map((w,i) => `
     <div class="player">
       <h2>プレイヤー ${i+1}</h2>
-      <div class="weapon">${escapeHtml(w.name)}</div>
+      <img class="weapon-image" src="${escapeHtml(w.image || '')}" alt="${escapeHtml(w.name)}のイラスト" ${w.image ? '' : 'hidden'} loading="lazy" onerror="this.hidden=true"><div class="weapon">${escapeHtml(w.name)}</div>
       <div class="kit">${escapeHtml(w.sub)}<br>＋ ${escapeHtml(w.special)}</div>
       <div class="role">${w.role}</div>
       <div class="stats">塗り性能：${'★'.repeat(w.paint)}${'☆'.repeat(5-w.paint)}<br>射程：${'★'.repeat(w.range)}${'☆'.repeat(5-w.range)}</div>
@@ -129,6 +144,11 @@ async function init() {
     const response = await fetch(API_URL, {cache:'no-cache'});
     if (!response.ok) throw new Error('API response ' + response.status);
     const data = await response.json();
+    // 画像データは別取得。取得できなくても武器ルーレットは使える。
+    try {
+      const imageResponse = await fetch(IMAGE_DATA_URL, {cache:'no-cache'});
+      if (imageResponse.ok) imageRows = await imageResponse.json();
+    } catch (imageError) { console.warn('ブキ画像データを取得できませんでした', imageError); }
     weapons = normalizeData(data);
     if (weapons.length < 100) throw new Error('取得したブキ数が少なすぎます (' + weapons.length + ')');
     $('status').textContent = `武器データ読み込み完了：${weapons.length}ブキセット`;
