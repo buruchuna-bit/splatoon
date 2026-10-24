@@ -1,167 +1,112 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>スプラ3 武器編成ルーレット</title>
 <style>
-*{box-sizing:border-box}body{margin:0;padding:20px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#171923;color:#fff;text-align:center}h1{font-size:25px;margin-bottom:8px}.subtitle{color:#b9bdcc;font-size:14px}.team{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:900px;margin:25px auto}.player{background:#292d3e;border-radius:15px;padding:15px 8px;border:2px solid #474d64;min-width:0}.player h2{font-size:14px;margin:0 0 15px;color:#b9bdcc}.weapon-image{width:100%;height:118px;object-fit:contain;display:block;margin:0 auto 8px;filter:drop-shadow(0 4px 8px #0005)}.weapon-image[hidden]{display:none}.weapon{font-size:16px;font-weight:bold;overflow-wrap:anywhere;line-height:1.5}.kit{font-size:12px;color:#b9bdcc;margin-top:5px;line-height:1.5}.role{margin-top:10px;font-size:13px;color:#ffd85c}.stats{font-size:12px;color:#d2d5e2;margin-top:8px;line-height:1.8}button{border:0;border-radius:12px;padding:15px 25px;font-size:17px;font-weight:bold;cursor:pointer}#roll{background:#d9ff43;color:#171923}#roll:active{transform:scale(.97)}#roll:disabled{opacity:.5;cursor:wait}.summary{max-width:650px;margin:18px auto 0;background:#222638;border-radius:12px;padding:12px;color:#e7e9f2;font-size:13px;line-height:1.8}.status{font-size:12px;color:#b9bdcc;margin-top:12px}.note{max-width:700px;margin:25px auto;color:#b9bdcc;font-size:12px;line-height:1.8;text-align:left}.note a{color:#d9ff43}@media(max-width:420px){body{padding:12px}h1{font-size:22px}.team{gap:6px}.player{padding:12px 4px}.weapon-image{height:88px}.weapon{font-size:14px}.kit{font-size:11px}.role{font-size:12px}.stats{font-size:11px}}
+:root{color-scheme:dark;--bg:#171923;--panel:#292d3e;--line:#474d64;--lime:#d9ff43;--muted:#b9bdcc}
+*{box-sizing:border-box}body{margin:0;padding:18px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:#fff;text-align:center}
+h1{font-size:clamp(21px,4vw,29px);margin:5px 0 8px}.subtitle{color:var(--muted);font-size:14px;line-height:1.6}
+.controls{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin:18px auto 8px}
+select,button{border:0;border-radius:12px;padding:13px 16px;font-size:15px;font-weight:700}
+select{background:#292d3e;color:#fff;border:1px solid var(--line)}button{background:var(--lime);color:#171923;cursor:pointer}button:active{transform:scale(.98)}
+.team{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:1000px;margin:18px auto}
+.player{background:var(--panel);border:2px solid var(--line);border-radius:15px;padding:14px 9px;min-width:0}
+.player h2{font-size:13px;color:var(--muted);margin:0 0 10px}.weapon-icon{height:72px;display:flex;align-items:center;justify-content:center;font-size:42px;filter:drop-shadow(0 4px 3px #0005)}
+.weapon{font-size:16px;font-weight:800;line-height:1.45;overflow-wrap:anywhere}.type{font-size:11px;color:var(--muted);margin-top:3px}.kit{font-size:12px;color:#d2d5e2;line-height:1.7;margin-top:8px}.role{display:inline-block;margin-top:9px;padding:4px 9px;border-radius:20px;background:#3b4055;font-size:12px;color:var(--lime)}
+.stats{font-size:12px;color:#e0e3ed;margin-top:8px;line-height:1.7}.details{margin-top:10px;text-align:left;border-top:1px solid #474d64;padding-top:9px;font-size:11px;color:#d2d5e2;line-height:1.65}.details b{color:#fff}
+.summary{max-width:700px;margin:12px auto;background:#222638;border-radius:12px;padding:12px;color:#e7e9f2;font-size:13px;line-height:1.8}.status{font-size:12px;color:var(--muted);margin-top:10px}
+.note{max-width:750px;margin:24px auto;color:var(--muted);font-size:12px;line-height:1.8;text-align:left}
+@media(max-width:480px){body{padding:10px}.team{gap:5px}.player{padding:10px 5px}.weapon{font-size:13px}.weapon-icon{height:55px;font-size:34px}.kit,.stats{font-size:10px}.details{font-size:10px}.player h2{font-size:11px}}
 </style>
 </head>
 <body>
 <h1>🎮 スプラ3 武器編成ルーレット</h1>
-<div class="subtitle">全ブキセットから3人分を抽選！編成バランスも考慮</div>
-<div class="team" id="team"><div class="player"><div class="weapon">武器データを読み込み中…</div></div></div>
-<button id="roll" disabled>🎲 編成を決める！</button>
-<div class="summary" id="summary">武器データを取得しています。</div>
-<div class="status" id="status"></div>
-<div class="note">
-<strong>抽選ルール</strong><br>
-・ブキセット単位で抽選（コラボ・カスタム・追加ブキも別扱い）<br>
-・3人のブキセットは重複なし<br>
-・後衛は最大1人（後衛2人・3人の編成は出ない）<br>・前衛3人など、役割が偏った編成は抽選対象に残す<br>・塗り性能と射程も考慮して、条件内でバランスの良い候補からランダム抽選<br>
-・役割と塗り性能は、ブキ種・射程などから作った目安。実際の立ち回りやステージによって変わります。<br><br>
-武器データ出典：<a href="https://stat.ink/api-info/weapon3?_lang_=ja-JP" target="_blank" rel="noopener">stat.ink ブキAPI情報</a>。最新データの取得にはインターネット接続が必要です。
+<div class="subtitle">Notionの武器データを内蔵｜ネット接続やstat.ink APIなしで動作</div>
+<div class="controls">
+<label for="mode">ルール評価：</label>
+<select id="mode"><option value="total">総合評価</option><option value="area">ガチエリア</option><option value="tower">ガチヤグラ</option><option value="rainmaker">ガチホコ</option><option value="clam">ガチアサリ</option></select>
+<button id="roll">🎲 編成を決める！</button>
 </div>
+<div class="team" id="team"></div>
+<div class="summary" id="summary">編成を抽選中…</div>
+<div class="status" id="status"></div>
+<div class="note"><b>抽選ルール</b><br>
+・送ってもらったNotionのデータ（全160種）を内蔵しているため、stat.inkへの通信は不要<br>
+・武器の重複なしで3つ選出<br>
+・前衛／中衛／後衛のポジションを考慮。前衛3人などはOK、後衛2人以上は避ける<br>
+・前中／中後など複数ポジションの武器は、該当する役割のどちらとしても数える<br>
+・カードのアイコンはブキ種ごとの目印。武器ごとの公式イラスト画像は、このデータには含まれていないため未設定です。<br>
+・評価やポジションは提供されたデータをそのまま使用しています。</div>
 <script>
-const API_URL = 'https://stat.ink/api/v3/weapon';
-let weapons = [];
-let imageRows = [];
+const weapons = [{"name":"スプラシューター","type":"シューター","sub":"キューバンボム","special":"ウルトラショット","good":"塗り,強スペ回し","bad":"","position":"前中","range":2.6,"easy":10.0,"total":7.5,"area":8.0,"tower":6.0,"rainmaker":8.0,"clam":8.0},{"name":"プライムシューター","type":"シューター","sub":"ラインマーカー","special":"カニタンク","good":"カバー,キル,維持","bad":"塗り","position":"中","range":3.5,"easy":7.0,"total":8.5,"area":6.0,"tower":8.0,"rainmaker":10.0,"clam":10.0},{"name":"ホットブラスター","type":"ブラスター","sub":"ロボットボム","special":"グレートバリア","good":"キル,潜伏キル","bad":"スペシャル回し,ヘイト買い,塗り","position":"前","range":2.7,"easy":8.0,"total":7.75,"area":5.0,"tower":10.0,"rainmaker":8.0,"clam":8.0},{"name":"ボールドマーカー","type":"シューター","sub":"カーリングボム","special":"ウルトラハンコ","good":"ヘイト買い,裏取り","bad":"維持","position":"前","range":1.7,"easy":8.0,"total":5.75,"area":5.0,"tower":3.0,"rainmaker":8.0,"clam":7.0},{"name":"ボールドマーカーネオ","type":"シューター","sub":"ジャンプビーコン","special":"メガホンレーザー5.1ch","good":"ヘイト買い,裏取り","bad":"カバー,キル,維持","position":"前","range":1.7,"easy":6.0,"total":3.75,"area":3.0,"tower":4.0,"rainmaker":3.0,"clam":5.0},{"name":"わかばシューター","type":"シューター","sub":"スプラッシュボム","special":"グレートバリア","good":"塗り,強スペ回し,維持","bad":"キル,潜伏キル","position":"前中","range":2.3,"easy":7.0,"total":6.5,"area":7.0,"tower":8.0,"rainmaker":5.0,"clam":6.0},{"name":"もみじシューター","type":"シューター","sub":"トーピード","special":"ホップソナー","good":"塗り","bad":"キル,潜伏キル","position":"前中","range":2.3,"easy":10.0,"total":4.25,"area":6.0,"tower":3.0,"rainmaker":4.0,"clam":4.0},{"name":"シャープマーカー","type":"シューター","sub":"クイックボム","special":"カニタンク","good":"カバー,塗り,強スペ回し","bad":"","position":"前中","range":2.5,"easy":8.0,"total":8.5,"area":9.0,"tower":7.0,"rainmaker":9.0,"clam":9.0},{"name":"シャープマーカーネオ","type":"シューター","sub":"キューバンボム","special":"トリプルトルネード","good":"塗り,強スペ回し","bad":"カバー,キル","position":"前中","range":2.5,"easy":8.0,"total":6.25,"area":8.0,"tower":7.0,"rainmaker":5.0,"clam":5.0},{"name":"シャープマーカーGECK","type":"シューター","sub":"ポイズンミスト","special":"アメフラシ","good":"塗り,維持","bad":"","position":"前中","range":2.5,"easy":7.0,"total":5.0,"area":5.0,"tower":3.0,"rainmaker":7.0,"clam":5.0},{"name":"プロモデラーMG","type":"シューター","sub":"タンサンボム","special":"サメライド","good":"塗り","bad":"キル,潜伏キル","position":"前中","range":2.3,"easy":9.0,"total":5.0,"area":8.0,"tower":3.0,"rainmaker":4.0,"clam":5.0},{"name":"プロモデラーRG","type":"シューター","sub":"スプリンクラー","special":"ナイスダマ","good":"塗り,強スペ回し","bad":"カバー,キル,潜伏キル","position":"前","range":2.3,"easy":10.0,"total":5.25,"area":8.0,"tower":5.0,"rainmaker":4.0,"clam":4.0},{"name":"プロモデラー彩","type":"シューター","sub":"クイックボム","special":"スミナガシート","good":"カバー,塗り","bad":"潜伏キル","position":"前中","range":2.3,"easy":8.0,"total":3.75,"area":6.0,"tower":3.0,"rainmaker":3.0,"clam":3.0},{"name":"スプラシューターコラボ","type":"シューター","sub":"スプラッシュボム","special":"トリプルトルネード","good":"塗り,強スペ回し","bad":"","position":"前中","range":2.6,"easy":10.0,"total":6.75,"area":8.0,"tower":7.0,"rainmaker":6.0,"clam":6.0},{"name":"スプラシューター煌","type":"シューター","sub":"クイックボム","special":"テイオウイカ","good":"カバー,塗り,強スペ回し","bad":"","position":"前","range":2.6,"easy":9.0,"total":6.75,"area":6.0,"tower":7.0,"rainmaker":8.0,"clam":6.0},{"name":".52ガロン","type":"シューター","sub":"スプラッシュシールド","special":"メガホンレーザー5.1ch","good":"キル,ヘイト買い,塗り,潜伏キル,維持","bad":"","position":"前","range":2.7,"easy":8.0,"total":8.75,"area":9.0,"tower":7.0,"rainmaker":9.0,"clam":10.0},{"name":".52ガロンデコ","type":"シューター","sub":"カーリングボム","special":"スミナガシート","good":"キル,塗り,潜伏キル","bad":"","position":"前","range":2.7,"easy":9.0,"total":7.5,"area":7.0,"tower":6.0,"rainmaker":8.0,"clam":9.0},{"name":"N-ZAP85","type":"シューター","sub":"キューバンボム","special":"エナジースタンド","good":"塗り,強スペ回し,維持","bad":"","position":"前中","range":2.5,"easy":10.0,"total":7.75,"area":7.0,"tower":7.0,"rainmaker":8.0,"clam":9.0},{"name":"N-ZAP89","type":"シューター","sub":"ロボットボム","special":"デコイチラシ","good":"塗り","bad":"","position":"前中","range":2.5,"easy":10.0,"total":4.5,"area":6.0,"tower":4.0,"rainmaker":4.0,"clam":4.0},{"name":"プライムシューターコラボ","type":"シューター","sub":"キューバンボム","special":"ナイスダマ","good":"カバー,維持","bad":"","position":"中","range":3.5,"easy":9.0,"total":7.75,"area":9.0,"tower":8.0,"rainmaker":7.0,"clam":7.0},{"name":"プライムシューターFRZN","type":"シューター","sub":"スプラッシュボム","special":"マルチミサイル","good":"カバー,キル","bad":"塗り","position":"前中","range":3.5,"easy":9.0,"total":6.25,"area":5.0,"tower":6.0,"rainmaker":7.0,"clam":7.0},{"name":".96ガロン","type":"シューター","sub":"スプリンクラー","special":"キューインキ","good":"キル,塗り,維持","bad":"","position":"中","range":3.6,"easy":4.0,"total":7.0,"area":7.0,"tower":6.0,"rainmaker":8.0,"clam":7.0},{"name":".96ガロンデコ","type":"シューター","sub":"スプラッシュシールド","special":"テイオウイカ","good":"キル,ヘイト買い,強スペ回し,維持","bad":"","position":"前中","range":3.6,"easy":4.0,"total":7.25,"area":6.0,"tower":8.0,"rainmaker":8.0,"clam":7.0},{"name":".96ガロン爪","type":"シューター","sub":"ラインマーカー","special":"エナジースタンド","good":"キル,強スペ回し,維持","bad":"","position":"中","range":3.6,"easy":3.0,"total":7.5,"area":7.0,"tower":7.0,"rainmaker":8.0,"clam":8.0},{"name":"ジェットスイーパー","type":"シューター","sub":"ラインマーカー","special":"キューインキ","good":"カバー,維持","bad":"","position":"中後","range":4.6,"easy":6.0,"total":6.0,"area":5.0,"tower":5.0,"rainmaker":8.0,"clam":6.0},{"name":"ジェットスイーパーカスタム","type":"シューター","sub":"ポイズンミスト","special":"アメフラシ","good":"カバー,維持","bad":"ヘイト買い,潜伏キル","position":"中後","range":4.6,"easy":7.0,"total":5.25,"area":5.0,"tower":4.0,"rainmaker":6.0,"clam":6.0},{"name":"ジェットスイーパーCOBR","type":"シューター","sub":"クイックボム","special":"ウルトラチャクチ","good":"カバー,キル,維持","bad":"","position":"中後","range":4.6,"easy":8.0,"total":5.75,"area":5.0,"tower":6.0,"rainmaker":6.0,"clam":6.0},{"name":"スペースシューター","type":"シューター","sub":"ポイントセンサー","special":"メガホンレーザー5.1ch","good":"カバー","bad":"キル,潜伏キル","position":"中","range":3.3,"easy":10.0,"total":1.5,"area":2.0,"tower":1.0,"rainmaker":1.0,"clam":2.0},{"name":"スペースシューターコラボ","type":"シューター","sub":"トラップ","special":"ジェットパック","good":"カバー,強スペ回し,維持","bad":"潜伏キル","position":"中","range":3.3,"easy":9.0,"total":6.25,"area":6.0,"tower":5.0,"rainmaker":8.0,"clam":6.0},{"name":"L3リールガン","type":"シューター","sub":"カーリングボム","special":"カニタンク","good":"塗り,強スペ回し","bad":"潜伏キル","position":"前中","range":3.1,"easy":5.0,"total":6.5,"area":7.0,"tower":5.0,"rainmaker":7.0,"clam":7.0},{"name":"L3リールガンD","type":"シューター","sub":"クイックボム","special":"ウルトラハンコ","good":"カバー,キル,塗り","bad":"","position":"前中","range":3.1,"easy":7.0,"total":6.5,"area":6.0,"tower":6.0,"rainmaker":7.0,"clam":7.0},{"name":"L3リールガン泊","type":"シューター","sub":"スプラッシュボム","special":"ジェットパック","good":"キル,塗り,強スペ回し","bad":"潜伏キル","position":"前中","range":3.1,"easy":5.0,"total":6.75,"area":7.0,"tower":6.0,"rainmaker":8.0,"clam":6.0},{"name":"H3リールガン","type":"シューター","sub":"ポイントセンサー","special":"エナジースタンド","good":"塗り,強スペ回し,維持","bad":"","position":"中","range":3.5,"easy":2.0,"total":5.0,"area":6.0,"tower":4.0,"rainmaker":5.0,"clam":5.0},{"name":"H3リールガンD","type":"シューター","sub":"スプラッシュシールド","special":"グレートバリア","good":"塗り,維持","bad":"","position":"前中","range":3.5,"easy":2.0,"total":5.5,"area":6.0,"tower":6.0,"rainmaker":5.0,"clam":5.0},{"name":"H3リールガンSNAK","type":"シューター","sub":"キューバンボム","special":"トリプルトルネード","good":"塗り,強スペ回し","bad":"","position":"中","range":3.5,"easy":3.0,"total":5.75,"area":7.0,"tower":6.0,"rainmaker":5.0,"clam":5.0},{"name":"ボトルガイザー","type":"シューター","sub":"スプラッシュシールド","special":"ウルトラショット","good":"カバー,キル,維持","bad":"スペシャル回し,塗り","position":"中","range":3.8,"easy":3.0,"total":6.5,"area":5.0,"tower":6.0,"rainmaker":8.0,"clam":7.0},{"name":"ボトルガイザーフォイル","type":"シューター","sub":"ロボットボム","special":"スミナガシート","good":"カバー,キル","bad":"スペシャル回し,塗り","position":"中","range":3.8,"easy":3.0,"total":4.25,"area":4.0,"tower":4.0,"rainmaker":4.0,"clam":5.0},{"name":"ノヴァブラスター","type":"ブラスター","sub":"スプラッシュボム","special":"ショクワンダー","good":"キル,潜伏キル","bad":"スペシャル回し,ヘイト買い,塗り,維持","position":"前","range":2.3,"easy":9.0,"total":7.0,"area":5.0,"tower":9.0,"rainmaker":7.0,"clam":7.0},{"name":"ノヴァブラスターネオ","type":"ブラスター","sub":"タンサンボム","special":"ウルトラハンコ","good":"キル,潜伏キル","bad":"スペシャル回し,塗り","position":"前","range":2.3,"easy":10.0,"total":7.75,"area":6.0,"tower":9.0,"rainmaker":8.0,"clam":8.0},{"name":"ホットブラスターカスタム","type":"ブラスター","sub":"ポイントセンサー","special":"ウルトラチャクチ","good":"キル,潜伏キル","bad":"スペシャル回し,塗り,維持","position":"前","range":2.7,"easy":9.0,"total":7.75,"area":6.0,"tower":9.0,"rainmaker":8.0,"clam":8.0},{"name":"ホットブラスター艶","type":"ブラスター","sub":"ジャンプビーコン","special":"カニタンク","good":"キル,潜伏キル,維持","bad":"塗り","position":"前中","range":2.7,"easy":6.0,"total":7.0,"area":5.0,"tower":9.0,"rainmaker":7.0,"clam":7.0},{"name":"ロングブラスター","type":"ブラスター","sub":"キューバンボム","special":"ホップソナー","good":"カバー,キル,維持","bad":"塗り","position":"前中","range":3.4,"easy":7.0,"total":6.25,"area":5.0,"tower":8.0,"rainmaker":6.0,"clam":6.0},{"name":"ロングブラスターカスタム","type":"ブラスター","sub":"スプラッシュボム","special":"テイオウイカ","good":"カバー,キル,維持","bad":"スペシャル回し,塗り","position":"前中","range":3.4,"easy":6.0,"total":6.25,"area":4.0,"tower":8.0,"rainmaker":7.0,"clam":6.0},{"name":"クラッシュブラスター","type":"ブラスター","sub":"スプラッシュボム","special":"ウルトラショット","good":"カバー,キル","bad":"スペシャル回し,塗り","position":"前","range":2.7,"easy":10.0,"total":4.25,"area":2.0,"tower":6.0,"rainmaker":5.0,"clam":4.0},{"name":"クラッシュブラスターネオ","type":"ブラスター","sub":"カーリングボム","special":"デコイチラシ","good":"カバー,キル,裏取り","bad":"スペシャル回し,塗り","position":"前","range":2.7,"easy":10.0,"total":4.75,"area":3.0,"tower":5.0,"rainmaker":5.0,"clam":6.0},{"name":"ラピッドブラスター","type":"ブラスター","sub":"トラップ","special":"トリプルトルネード","good":"カバー,キル,維持","bad":"塗り,潜伏キル","position":"中","range":3.7,"easy":5.0,"total":6.5,"area":6.0,"tower":8.0,"rainmaker":6.0,"clam":6.0},{"name":"ラピッドブラスターデコ","type":"ブラスター","sub":"トーピード","special":"ジェットパック","good":"カバー,キル,維持","bad":"塗り,潜伏キル","position":"中","range":3.7,"easy":6.0,"total":7.0,"area":5.0,"tower":8.0,"rainmaker":8.0,"clam":7.0},{"name":"Rブラスターエリート","type":"ブラスター","sub":"ポイズンミスト","special":"キューインキ","good":"カバー,キル,維持","bad":"塗り,潜伏キル","position":"中後","range":4.2,"easy":3.0,"total":6.75,"area":5.0,"tower":7.0,"rainmaker":9.0,"clam":6.0},{"name":"Rブラスターエリートデコ","type":"ブラスター","sub":"ラインマーカー","special":"メガホンレーザー5.1ch","good":"カバー,キル,維持","bad":"塗り,潜伏キル","position":"中","range":4.2,"easy":4.0,"total":8.0,"area":5.0,"tower":10.0,"rainmaker":9.0,"clam":8.0},{"name":"RブラスターエリートWNTR","type":"ブラスター","sub":"キューバンボム","special":"エナジースタンド","good":"カバー,キル,維持","bad":"潜伏キル","position":"中後","range":4.2,"easy":3.0,"total":7.25,"area":6.0,"tower":8.0,"rainmaker":9.0,"clam":6.0},{"name":"S-BLAST92","type":"ブラスター","sub":"スプリンクラー","special":"サメライド","good":"キル,潜伏キル","bad":"","position":"前","range":3.3,"easy":4.0,"total":6.75,"area":5.0,"tower":8.0,"rainmaker":7.0,"clam":7.0},{"name":"S-BLAST91","type":"ブラスター","sub":"クイックボム","special":"ナイスダマ","good":"カバー,キル,潜伏キル","bad":"スペシャル回し,塗り","position":"前","range":3.3,"easy":5.0,"total":8.5,"area":5.0,"tower":10.0,"rainmaker":10.0,"clam":9.0},{"name":"カーボンローラー","type":"ローラー","sub":"ロボットボム","special":"ショクワンダー","good":"","bad":"カバー,スペシャル回し,ヘイト買い,塗り,維持","position":"前","range":2.7,"easy":6.0,"total":1.75,"area":1.0,"tower":2.0,"rainmaker":2.0,"clam":2.0},{"name":"カーボンローラーデコ","type":"ローラー","sub":"クイックボム","special":"ウルトラショット","good":"キル,潜伏キル","bad":"スペシャル回し,ヘイト買い,塗り,維持","position":"前","range":2.7,"easy":8.0,"total":5.75,"area":3.0,"tower":6.0,"rainmaker":7.0,"clam":7.0},{"name":"カーボンローラーANGL","type":"ローラー","sub":"タンサンボム","special":"デコイチラシ","good":"潜伏キル","bad":"カバー","position":"前","range":2.7,"easy":7.0,"total":4.25,"area":4.0,"tower":3.0,"rainmaker":5.0,"clam":5.0},{"name":"スプラローラー","type":"ローラー","sub":"カーリングボム","special":"グレートバリア","good":"キル,潜伏キル,維持","bad":"塗り","position":"前","range":3.2,"easy":9.0,"total":7.75,"area":4.0,"tower":9.0,"rainmaker":9.0,"clam":9.0},{"name":"スプラローラーコラボ","type":"ローラー","sub":"ジャンプビーコン","special":"テイオウイカ","good":"キル,潜伏キル,維持","bad":"カバー,スペシャル回し,塗り","position":"前","range":3.2,"easy":6.0,"total":5.5,"area":3.0,"tower":7.0,"rainmaker":6.0,"clam":6.0},{"name":"ダイナモローラー","type":"ローラー","sub":"スプリンクラー","special":"エナジースタンド","good":"キル,塗り,強スペ回し,維持","bad":"ヘイト買い,潜伏キル","position":"中","range":4.8,"easy":7.0,"total":8.25,"area":9.0,"tower":7.0,"rainmaker":8.0,"clam":9.0},{"name":"ダイナモローラーテスラ","type":"ローラー","sub":"スプラッシュボム","special":"デコイチラシ","good":"キル,塗り","bad":"潜伏キル","position":"前中","range":4.8,"easy":4.0,"total":5.5,"area":7.0,"tower":5.0,"rainmaker":5.0,"clam":5.0},{"name":"ダイナモローラー冥","type":"ローラー","sub":"ポイントセンサー","special":"メガホンレーザー5.1ch","good":"キル,塗り","bad":"ヘイト買い,潜伏キル","position":"中","range":4.8,"easy":5.0,"total":5.5,"area":6.0,"tower":5.0,"rainmaker":5.0,"clam":6.0},{"name":"ヴァリアブルローラー","type":"ローラー","sub":"トラップ","special":"マルチミサイル","good":"塗り,潜伏キル","bad":"ヘイト買い","position":"中","range":4.1,"easy":7.0,"total":5.5,"area":7.0,"tower":5.0,"rainmaker":5.0,"clam":5.0},{"name":"ヴァリアブルローラーフォイル","type":"ローラー","sub":"キューバンボム","special":"スミナガシート","good":"塗り,潜伏キル,維持","bad":"ヘイト買い","position":"中","range":4.1,"easy":6.0,"total":5.75,"area":7.0,"tower":6.0,"rainmaker":5.0,"clam":5.0},{"name":"ワイドローラー","type":"ローラー","sub":"スプラッシュシールド","special":"キューインキ","good":"カバー,塗り,維持","bad":"潜伏キル","position":"前中","range":3.9,"easy":3.0,"total":5.25,"area":6.0,"tower":4.0,"rainmaker":7.0,"clam":4.0},{"name":"ワイドローラーコラボ","type":"ローラー","sub":"ラインマーカー","special":"アメフラシ","good":"カバー,塗り","bad":"ヘイト買い,潜伏キル","position":"前中","range":3.9,"easy":3.0,"total":4.75,"area":6.0,"tower":3.0,"rainmaker":5.0,"clam":5.0},{"name":"ワイドローラー惑","type":"ローラー","sub":"トーピード","special":"ウルトラチャクチ","good":"カバー,キル,塗り","bad":"ヘイト買い,潜伏キル","position":"前中","range":3.9,"easy":5.0,"total":5.25,"area":6.0,"tower":4.0,"rainmaker":6.0,"clam":5.0},{"name":"スクイックリンα","type":"チャージャー","sub":"ポイントセンサー","special":"グレートバリア","good":"キル,維持","bad":"カバー,潜伏キル","position":"中","range":3.8,"easy":2.0,"total":5.25,"area":4.0,"tower":6.0,"rainmaker":5.0,"clam":6.0},{"name":"スクイックリンβ","type":"チャージャー","sub":"ロボットボム","special":"ショクワンダー","good":"キル","bad":"カバー,潜伏キル","position":"中","range":3.8,"easy":1.0,"total":4.0,"area":3.0,"tower":4.0,"rainmaker":5.0,"clam":4.0},{"name":"スプラチャージャー","type":"チャージャー","sub":"スプラッシュボム","special":"キューインキ","good":"キル","bad":"ヘイト買い,塗り,潜伏キル","position":"後","range":5.2,"easy":3.0,"total":4.5,"area":3.0,"tower":5.0,"rainmaker":6.0,"clam":4.0},{"name":"スプラスコープ","type":"チャージャー","sub":"スプラッシュボム","special":"キューインキ","good":"キル","bad":"ヘイト買い,塗り,潜伏キル","position":"後","range":5.7,"easy":2.0,"total":4.5,"area":3.0,"tower":5.0,"rainmaker":6.0,"clam":4.0},{"name":"スプラチャージャーコラボ","type":"チャージャー","sub":"スプラッシュシールド","special":"トリプルトルネード","good":"キル,維持","bad":"ヘイト買い,潜伏キル","position":"後","range":5.2,"easy":3.0,"total":5.25,"area":5.0,"tower":6.0,"rainmaker":5.0,"clam":5.0},{"name":"スプラスコープコラボ","type":"チャージャー","sub":"スプラッシュシールド","special":"トリプルトルネード","good":"キル,維持","bad":"ヘイト買い,潜伏キル","position":"後","range":5.7,"easy":2.0,"total":5.25,"area":5.0,"tower":6.0,"rainmaker":5.0,"clam":5.0},{"name":"スプラチャージャーFRST","type":"チャージャー","sub":"スプリンクラー","special":"カニタンク","good":"キル,強スペ回し,維持","bad":"ヘイト買い,潜伏キル","position":"後","range":5.2,"easy":3.0,"total":5.5,"area":6.0,"tower":5.0,"rainmaker":6.0,"clam":5.0},{"name":"スプラスコープFRST","type":"チャージャー","sub":"スプリンクラー","special":"カニタンク","good":"キル,強スペ回し,維持","bad":"ヘイト買い,潜伏キル","position":"後","range":5.7,"easy":2.0,"total":5.5,"area":6.0,"tower":5.0,"rainmaker":6.0,"clam":5.0},{"name":"リッター4K","type":"チャージャー","sub":"トラップ","special":"ホップソナー","good":"カバー,キル","bad":"ヘイト買い,塗り,潜伏キル","position":"後","range":6.2,"easy":3.0,"total":7.0,"area":6.0,"tower":8.0,"rainmaker":8.0,"clam":6.0},{"name":"4Kスコープ","type":"チャージャー","sub":"トラップ","special":"ホップソナー","good":"カバー,キル","bad":"ヘイト買い,塗り,潜伏キル","position":"後","range":6.7,"easy":2.0,"total":6.75,"area":6.0,"tower":8.0,"rainmaker":8.0,"clam":5.0},{"name":"リッター4Kカスタム","type":"チャージャー","sub":"ジャンプビーコン","special":"テイオウイカ","good":"カバー,キル,維持","bad":"スペシャル回し,ヘイト買い,塗り,潜伏キル","position":"後","range":6.2,"easy":3.0,"total":7.0,"area":5.0,"tower":9.0,"rainmaker":8.0,"clam":6.0},{"name":"4Kスコープカスタム","type":"チャージャー","sub":"ジャンプビーコン","special":"テイオウイカ","good":"カバー,キル,維持","bad":"スペシャル回し,ヘイト買い,塗り,潜伏キル","position":"後","range":6.7,"easy":2.0,"total":6.75,"area":5.0,"tower":9.0,"rainmaker":8.0,"clam":5.0},{"name":"14式竹筒銃・甲","type":"チャージャー","sub":"ロボットボム","special":"メガホンレーザー5.1ch","good":"カバー,キル","bad":"ヘイト買い,潜伏キル","position":"中後","range":4.3,"easy":2.0,"total":6.0,"area":6.0,"tower":6.0,"rainmaker":6.0,"clam":6.0},{"name":"14式竹筒銃・乙","type":"チャージャー","sub":"タンサンボム","special":"デコイチラシ","good":"カバー,キル,塗り","bad":"ヘイト買い,潜伏キル","position":"中後","range":4.3,"easy":2.0,"total":5.75,"area":7.0,"tower":5.0,"rainmaker":5.0,"clam":6.0},{"name":"ソイチューバー","type":"チャージャー","sub":"トーピード","special":"マルチミサイル","good":"塗り","bad":"ヘイト買い,潜伏キル","position":"中","range":4.35,"easy":2.0,"total":4.25,"area":4.0,"tower":4.0,"rainmaker":5.0,"clam":4.0},{"name":"ソイチューバーカスタム","type":"チャージャー","sub":"タンサンボム","special":"ウルトラハンコ","good":"塗り","bad":"ヘイト買い,潜伏キル","position":"中","range":4.35,"easy":3.0,"total":5.0,"area":4.0,"tower":5.0,"rainmaker":6.0,"clam":5.0},{"name":"R-PEN/5H","type":"チャージャー","sub":"スプリンクラー","special":"エナジースタンド","good":"カバー,塗り,強スペ回し,維持","bad":"ヘイト買い,潜伏キル","position":"後","range":5.75,"easy":4.0,"total":7.5,"area":10.0,"tower":6.0,"rainmaker":8.0,"clam":6.0},{"name":"R-PEN/5B","type":"チャージャー","sub":"スプラッシュシールド","special":"アメフラシ","good":"カバー,塗り,維持","bad":"ヘイト買い,潜伏キル","position":"後","range":5.75,"easy":3.0,"total":5.75,"area":8.0,"tower":5.0,"rainmaker":6.0,"clam":4.0},{"name":"バケットスロッシャー","type":"スロッシャー","sub":"スプラッシュボム","special":"トリプルトルネード","good":"キル","bad":"潜伏キル","position":"前中","range":3.1,"easy":7.0,"total":8.75,"area":9.0,"tower":9.0,"rainmaker":8.0,"clam":9.0},{"name":"バケットスロッシャーデコ","type":"スロッシャー","sub":"ラインマーカー","special":"ショクワンダー","good":"キル","bad":"潜伏キル","position":"前中","range":3.1,"easy":4.0,"total":5.5,"area":5.0,"tower":5.0,"rainmaker":6.0,"clam":6.0},{"name":"ヒッセン","type":"スロッシャー","sub":"ポイズンミスト","special":"ジェットパック","good":"キル,潜伏キル","bad":"カバー,ヘイト買い","position":"前","range":2.4,"easy":7.0,"total":6.5,"area":6.0,"tower":6.0,"rainmaker":8.0,"clam":6.0},{"name":"ヒッセン・ヒュー","type":"スロッシャー","sub":"タンサンボム","special":"エナジースタンド","good":"キル,強スペ回し,潜伏キル,維持","bad":"","position":"前中","range":2.4,"easy":9.0,"total":6.75,"area":6.0,"tower":6.0,"rainmaker":7.0,"clam":8.0},{"name":"ヒッセンASH","type":"スロッシャー","sub":"スプラッシュボム","special":"スミナガシート","good":"キル,潜伏キル","bad":"カバー,ヘイト買い","position":"前","range":2.4,"easy":9.0,"total":6.0,"area":5.0,"tower":6.0,"rainmaker":6.0,"clam":7.0},{"name":"スクリュースロッシャー","type":"スロッシャー","sub":"タンサンボム","special":"ナイスダマ","good":"カバー,キル","bad":"","position":"前中","range":3.3,"easy":7.0,"total":6.0,"area":6.0,"tower":7.0,"rainmaker":6.0,"clam":5.0},{"name":"スクリュースロッシャーネオ","type":"スロッシャー","sub":"ポイントセンサー","special":"ウルトラショット","good":"カバー,キル","bad":"スペシャル回し,塗り,潜伏キル","position":"前中","range":3.3,"easy":7.0,"total":5.75,"area":5.0,"tower":6.0,"rainmaker":7.0,"clam":5.0},{"name":"オーバーフロッシャー","type":"スロッシャー","sub":"スプリンクラー","special":"アメフラシ","good":"カバー,塗り,維持","bad":"キル,ヘイト買い,潜伏キル","position":"中後","range":5.4,"easy":5.0,"total":4.25,"area":6.0,"tower":3.0,"rainmaker":4.0,"clam":4.0},{"name":"オーバーフロッシャーデコ","type":"スロッシャー","sub":"ラインマーカー","special":"テイオウイカ","good":"カバー,強スペ回し,維持","bad":"キル,ヘイト買い,潜伏キル","position":"中後","range":5.4,"easy":4.0,"total":5.0,"area":4.0,"tower":5.0,"rainmaker":7.0,"clam":4.0},{"name":"エクスプロッシャー","type":"スロッシャー","sub":"ポイントセンサー","special":"アメフラシ","good":"カバー,塗り","bad":"ヘイト買い,潜伏キル","position":"中後","range":4.7,"easy":5.0,"total":4.5,"area":6.0,"tower":4.0,"rainmaker":4.0,"clam":4.0},{"name":"エクスプロッシャーカスタム","type":"スロッシャー","sub":"スプラッシュシールド","special":"ウルトラチャクチ","good":"カバー,塗り,維持","bad":"ヘイト買い,潜伏キル","position":"中後","range":4.7,"easy":6.0,"total":5.25,"area":6.0,"tower":5.0,"rainmaker":5.0,"clam":5.0},{"name":"モップリン","type":"スロッシャー","sub":"キューバンボム","special":"サメライド","good":"塗り,維持","bad":"ヘイト買い,潜伏キル","position":"中","range":3.3,"easy":5.0,"total":6.75,"area":9.0,"tower":6.0,"rainmaker":6.0,"clam":6.0},{"name":"モップリンD","type":"スロッシャー","sub":"ジャンプビーコン","special":"ホップソナー","good":"塗り,維持","bad":"ヘイト買い,潜伏キル","position":"中","range":3.3,"easy":4.0,"total":6.0,"area":7.0,"tower":6.0,"rainmaker":5.0,"clam":6.0},{"name":"モップリン角","type":"スロッシャー","sub":"カーリングボム","special":"カニタンク","good":"塗り,強スペ回し,維持","bad":"ヘイト買い,潜伏キル","position":"中","range":3.3,"easy":4.0,"total":6.0,"area":8.0,"tower":5.0,"rainmaker":6.0,"clam":5.0},{"name":"スプラスピナー","type":"スピナー","sub":"クイックボム","special":"ウルトラハンコ","good":"カバー,塗り,強スペ回し","bad":"潜伏キル","position":"前中","range":3.0,"easy":7.0,"total":7.25,"area":8.0,"tower":6.0,"rainmaker":8.0,"clam":7.0},{"name":"スプラスピナーコラボ","type":"スピナー","sub":"ポイズンミスト","special":"グレートバリア","good":"塗り,強スペ回し,維持","bad":"潜伏キル","position":"前中","range":3.0,"easy":7.0,"total":7.0,"area":9.0,"tower":7.0,"rainmaker":6.0,"clam":6.0},{"name":"スプラスピナーPYTN","type":"スピナー","sub":"ジャンプビーコン","special":"ウルトラショット","good":"塗り,強スペ回し","bad":"潜伏キル","position":"中","range":3.0,"easy":7.0,"total":7.25,"area":8.0,"tower":6.0,"rainmaker":8.0,"clam":7.0},{"name":"バレルスピナー","type":"スピナー","sub":"スプリンクラー","special":"ホップソナー","good":"カバー,塗り,維持","bad":"潜伏キル","position":"中後","range":4.2,"easy":7.0,"total":5.5,"area":7.0,"tower":5.0,"rainmaker":5.0,"clam":5.0},{"name":"バレルスピナーデコ","type":"スピナー","sub":"ポイントセンサー","special":"テイオウイカ","good":"カバー,塗り,強スペ回し,維持","bad":"潜伏キル","position":"中後","range":4.2,"easy":6.0,"total":5.75,"area":6.0,"tower":6.0,"rainmaker":6.0,"clam":5.0},{"name":"ハイドラント","type":"スピナー","sub":"ロボットボム","special":"ナイスダマ","good":"カバー,キル","bad":"ヘイト買い,塗り,潜伏キル","position":"後","range":5.0,"easy":5.0,"total":5.0,"area":4.0,"tower":7.0,"rainmaker":5.0,"clam":4.0},{"name":"ハイドラントカスタム","type":"スピナー","sub":"トラップ","special":"スミナガシート","good":"カバー,キル,維持","bad":"ヘイト買い,塗り,潜伏キル","position":"後","range":5.0,"easy":4.0,"total":4.5,"area":4.0,"tower":5.0,"rainmaker":5.0,"clam":4.0},{"name":"ハイドラント圧","type":"スピナー","sub":"スプリンクラー","special":"グレートバリア","good":"カバー,キル,維持","bad":"ヘイト買い,潜伏キル","position":"後","range":5.0,"easy":5.0,"total":5.0,"area":4.0,"tower":7.0,"rainmaker":5.0,"clam":4.0},{"name":"クーゲルシュライバー","type":"スピナー","sub":"タンサンボム","special":"ジェットパック","good":"カバー,塗り,強スペ回し","bad":"潜伏キル","position":"中後","range":4.7,"easy":4.0,"total":7.25,"area":9.0,"tower":6.0,"rainmaker":8.0,"clam":6.0},{"name":"クーゲルシュライバー・ヒュー","type":"スピナー","sub":"トラップ","special":"キューインキ","good":"カバー,塗り,維持","bad":"潜伏キル","position":"中後","range":4.7,"easy":4.0,"total":6.75,"area":7.0,"tower":6.0,"rainmaker":8.0,"clam":6.0},{"name":"ノーチラス47","type":"スピナー","sub":"ポイントセンサー","special":"アメフラシ","good":"カバー,キル","bad":"","position":"中","range":3.6,"easy":4.0,"total":6.25,"area":5.0,"tower":6.0,"rainmaker":7.0,"clam":7.0},{"name":"ノーチラス79","type":"スピナー","sub":"キューバンボム","special":"ウルトラチャクチ","good":"カバー,キル","bad":"","position":"中","range":3.6,"easy":4.0,"total":6.0,"area":5.0,"tower":7.0,"rainmaker":6.0,"clam":6.0},{"name":"イグザミナー","type":"スピナー","sub":"カーリングボム","special":"エナジースタンド","good":"塗り,強スペ回し,維持","bad":"潜伏キル","position":"中","range":3.5,"easy":7.0,"total":6.75,"area":7.0,"tower":6.0,"rainmaker":7.0,"clam":7.0},{"name":"イグザミナー・ヒュー","type":"スピナー","sub":"スプラッシュボム","special":"カニタンク","good":"塗り,強スペ回し,維持","bad":"潜伏キル","position":"中","range":3.5,"easy":6.0,"total":5.75,"area":6.0,"tower":5.0,"rainmaker":6.0,"clam":6.0},{"name":"スパッタリー","type":"マニューバー","sub":"ジャンプビーコン","special":"エナジースタンド","good":"強スペ回し,潜伏キル,維持","bad":"カバー","position":"前","range":2.0,"easy":6.0,"total":7.75,"area":6.0,"tower":8.0,"rainmaker":8.0,"clam":9.0},{"name":"スパッタリー・ヒュー","type":"マニューバー","sub":"トーピード","special":"サメライド","good":"キル,潜伏キル","bad":"カバー","position":"前","range":2.0,"easy":7.0,"total":5.75,"area":5.0,"tower":5.0,"rainmaker":6.0,"clam":7.0},{"name":"スパッタリーOWL","type":"マニューバー","sub":"スプラッシュボム","special":"メガホンレーザー5.1ch","good":"キル,潜伏キル","bad":"カバー","position":"前","range":2.0,"easy":7.0,"total":5.25,"area":5.0,"tower":6.0,"rainmaker":5.0,"clam":5.0},{"name":"スプラマニューバー","type":"マニューバー","sub":"キューバンボム","special":"カニタンク","good":"キル,強スペ回し","bad":"","position":"前","range":2.5,"easy":7.0,"total":8.25,"area":8.0,"tower":8.0,"rainmaker":8.0,"clam":9.0},{"name":"スプラマニューバーコラボ","type":"マニューバー","sub":"カーリングボム","special":"ウルトラチャクチ","good":"キル,ヘイト買い,裏取り","bad":"","position":"前","range":2.5,"easy":8.0,"total":6.0,"area":5.0,"tower":6.0,"rainmaker":6.0,"clam":7.0},{"name":"スプラマニューバー耀","type":"マニューバー","sub":"タンサンボム","special":"グレートバリア","good":"キル,ヘイト買い","bad":"","position":"前","range":2.5,"easy":8.0,"total":7.5,"area":6.0,"tower":8.0,"rainmaker":7.0,"clam":9.0},{"name":"ケルビン525","type":"マニューバー","sub":"スプラッシュシールド","special":"ナイスダマ","good":"キル,ヘイト買い,維持","bad":"塗り,潜伏キル","position":"前中","range":3.4,"easy":4.0,"total":5.25,"area":5.0,"tower":6.0,"rainmaker":5.0,"clam":5.0},{"name":"ケルビン525デコ","type":"マニューバー","sub":"ポイントセンサー","special":"ウルトラショット","good":"キル","bad":"塗り,潜伏キル","position":"中","range":3.4,"easy":4.0,"total":4.0,"area":3.0,"tower":4.0,"rainmaker":5.0,"clam":4.0},{"name":"デュアルスイーパー","type":"マニューバー","sub":"スプラッシュボム","special":"ホップソナー","good":"カバー,ヘイト買い","bad":"","position":"中","range":3.4,"easy":7.0,"total":5.5,"area":5.0,"tower":5.0,"rainmaker":6.0,"clam":6.0},{"name":"デュアルスイーパーカスタム","type":"マニューバー","sub":"ジャンプビーコン","special":"デコイチラシ","good":"カバー,ヘイト買い,維持","bad":"","position":"中","range":3.4,"easy":6.0,"total":5.25,"area":5.0,"tower":5.0,"rainmaker":5.0,"clam":6.0},{"name":"デュアルスイーパー蹄","type":"マニューバー","sub":"ポイントセンサー","special":"スミナガシート","good":"カバー,ヘイト買い","bad":"","position":"中","range":3.4,"easy":6.0,"total":4.5,"area":4.0,"tower":4.0,"rainmaker":5.0,"clam":5.0},{"name":"クアッドホッパーブラック","type":"マニューバー","sub":"ロボットボム","special":"サメライド","good":"キル,ヘイト買い,裏取り","bad":"スペシャル回し,塗り,潜伏キル","position":"前","range":2.8,"easy":5.0,"total":5.25,"area":5.0,"tower":4.0,"rainmaker":5.0,"clam":7.0},{"name":"クアッドホッパーホワイト","type":"マニューバー","sub":"スプリンクラー","special":"ショクワンダー","good":"キル,ヘイト買い,裏取り","bad":"スペシャル回し,塗り,潜伏キル","position":"前","range":2.8,"easy":4.0,"total":5.0,"area":5.0,"tower":4.0,"rainmaker":5.0,"clam":6.0},{"name":"ガエンFF","type":"マニューバー","sub":"トラップ","special":"メガホンレーザー5.1ch","good":"カバー","bad":"潜伏キル","position":"中後","range":4.1,"easy":5.0,"total":3.5,"area":3.0,"tower":2.0,"rainmaker":5.0,"clam":4.0},{"name":"ガエンFFカスタム","type":"マニューバー","sub":"クイックボム","special":"トリプルトルネード","good":"カバー,強スペ回し","bad":"潜伏キル","position":"中後","range":4.1,"easy":6.0,"total":4.75,"area":5.0,"tower":5.0,"rainmaker":5.0,"clam":4.0},{"name":"パラシェルター","type":"シェルター","sub":"スプリンクラー","special":"トリプルトルネード","good":"ヘイト買い,塗り,強スペ回し","bad":"","position":"前中","range":2.5,"easy":4.0,"total":5.75,"area":8.0,"tower":7.0,"rainmaker":4.0,"clam":4.0},{"name":"パラシェルターソレーラ","type":"シェルター","sub":"ロボットボム","special":"ジェットパック","good":"キル,ヘイト買い,塗り,強スペ回し","bad":"","position":"前中","range":2.5,"easy":4.0,"total":6.0,"area":7.0,"tower":6.0,"rainmaker":6.0,"clam":5.0},{"name":"キャンピングシェルター","type":"シェルター","sub":"ジャンプビーコン","special":"キューインキ","good":"ヘイト買い,維持","bad":"","position":"前","range":3.1,"easy":2.0,"total":5.0,"area":3.0,"tower":5.0,"rainmaker":7.0,"clam":5.0},{"name":"キャンピングシェルターソレーラ","type":"シェルター","sub":"トラップ","special":"ウルトラショット","good":"ヘイト買い,維持","bad":"","position":"前","range":3.1,"easy":2.0,"total":5.75,"area":5.0,"tower":5.0,"rainmaker":7.0,"clam":6.0},{"name":"キャンピングシェルターCREM","type":"シェルター","sub":"ポイズンミスト","special":"デコイチラシ","good":"ヘイト買い,維持","bad":"","position":"前","range":3.1,"easy":2.0,"total":4.25,"area":4.0,"tower":3.0,"rainmaker":6.0,"clam":4.0},{"name":"スパイガジェット","type":"シェルター","sub":"トラップ","special":"サメライド","good":"ヘイト買い,維持","bad":"潜伏キル","position":"前","range":2.6,"easy":4.0,"total":5.25,"area":7.0,"tower":4.0,"rainmaker":5.0,"clam":5.0},{"name":"スパイガジェットソレーラ","type":"シェルター","sub":"トーピード","special":"スミナガシート","good":"ヘイト買い,維持","bad":"潜伏キル","position":"前","range":2.6,"easy":4.0,"total":4.5,"area":4.0,"tower":4.0,"rainmaker":5.0,"clam":5.0},{"name":"スパイガジェット繚","type":"シェルター","sub":"カーリングボム","special":"メガホンレーザー5.1ch","good":"ヘイト買い","bad":"潜伏キル","position":"前","range":2.6,"easy":4.0,"total":4.75,"area":4.0,"tower":4.0,"rainmaker":5.0,"clam":6.0},{"name":"24式張替傘・甲","type":"シェルター","sub":"ラインマーカー","special":"グレートバリア","good":"カバー,キル,ヘイト買い","bad":"","position":"前","range":3.0,"easy":5.0,"total":6.0,"area":5.0,"tower":7.0,"rainmaker":6.0,"clam":6.0},{"name":"24式張替傘・乙","type":"シェルター","sub":"ポイズンミスト","special":"ウルトラチャクチ","good":"キル,ヘイト買い","bad":"","position":"前","range":3.0,"easy":6.0,"total":5.5,"area":5.0,"tower":5.0,"rainmaker":7.0,"clam":5.0},{"name":"パブロ","type":"フデ","sub":"スプラッシュボム","special":"メガホンレーザー5.1ch","good":"ヘイト買い,裏取り","bad":"","position":"前","range":1.5,"easy":5.0,"total":6.25,"area":5.0,"tower":5.0,"rainmaker":6.0,"clam":9.0},{"name":"パブロ・ヒュー","type":"フデ","sub":"トラップ","special":"ウルトラハンコ","good":"ヘイト買い,裏取り","bad":"","position":"前","range":1.5,"easy":5.0,"total":6.75,"area":5.0,"tower":5.0,"rainmaker":7.0,"clam":10.0},{"name":"ホクサイ","type":"フデ","sub":"キューバンボム","special":"ショクワンダー","good":"キル,潜伏キル","bad":"カバー","position":"前","range":1.9,"easy":8.0,"total":5.5,"area":5.0,"tower":6.0,"rainmaker":5.0,"clam":6.0},{"name":"ホクサイ・ヒュー","type":"フデ","sub":"ジャンプビーコン","special":"アメフラシ","good":"キル,潜伏キル,維持","bad":"カバー,スペシャル回し","position":"前","range":1.9,"easy":6.0,"total":4.0,"area":3.0,"tower":4.0,"rainmaker":4.0,"clam":5.0},{"name":"ホクサイ彗","type":"フデ","sub":"ロボットボム","special":"テイオウイカ","good":"キル,潜伏キル","bad":"カバー,スペシャル回し","position":"前","range":1.9,"easy":7.0,"total":4.5,"area":3.0,"tower":5.0,"rainmaker":5.0,"clam":5.0},{"name":"フィンセント","type":"フデ","sub":"カーリングボム","special":"ホップソナー","good":"キル,潜伏キル","bad":"カバー","position":"前","range":2.5,"easy":7.0,"total":5.75,"area":5.0,"tower":5.0,"rainmaker":6.0,"clam":7.0},{"name":"フィンセント・ヒュー","type":"フデ","sub":"ポイントセンサー","special":"マルチミサイル","good":"キル,強スペ回し,潜伏キル","bad":"カバー","position":"前中","range":2.5,"easy":6.0,"total":5.5,"area":6.0,"tower":5.0,"rainmaker":5.0,"clam":6.0},{"name":"フィンセントBRNZ","type":"フデ","sub":"スプラッシュシールド","special":"ウルトラショット","good":"キル,強スペ回し,潜伏キル","bad":"カバー","position":"前","range":2.5,"easy":6.0,"total":6.0,"area":6.0,"tower":5.0,"rainmaker":7.0,"clam":6.0},{"name":"トライストリンガー","type":"ストリンガー","sub":"ポイズンミスト","special":"メガホンレーザー5.1ch","good":"カバー,塗り,維持","bad":"潜伏キル","position":"後","range":5.8,"easy":4.0,"total":6.25,"area":7.0,"tower":6.0,"rainmaker":7.0,"clam":5.0},{"name":"トライストリンガーコラボ","type":"ストリンガー","sub":"スプリンクラー","special":"デコイチラシ","good":"カバー,塗り,維持","bad":"潜伏キル","position":"後","range":5.8,"easy":4.0,"total":6.5,"area":9.0,"tower":6.0,"rainmaker":6.0,"clam":5.0},{"name":"トライストリンガー燈","type":"ストリンガー","sub":"ラインマーカー","special":"ジェットパック","good":"カバー,キル,塗り,強スペ回し,維持","bad":"潜伏キル","position":"後","range":5.8,"easy":4.0,"total":7.25,"area":8.0,"tower":7.0,"rainmaker":8.0,"clam":6.0},{"name":"LACT-450","type":"ストリンガー","sub":"カーリングボム","special":"マルチミサイル","good":"カバー,塗り,強スペ回し","bad":"","position":"中","range":3.6,"easy":4.0,"total":5.5,"area":7.0,"tower":4.0,"rainmaker":5.0,"clam":6.0},{"name":"LACT-450デコ","type":"ストリンガー","sub":"スプラッシュシールド","special":"サメライド","good":"カバー,塗り,維持","bad":"","position":"前中","range":3.6,"easy":4.0,"total":5.75,"area":7.0,"tower":5.0,"rainmaker":5.0,"clam":6.0},{"name":"LACT-450MILK","type":"ストリンガー","sub":"トーピード","special":"ナイスダマ","good":"カバー,塗り,強スペ回し","bad":"","position":"中","range":3.6,"easy":5.0,"total":6.75,"area":8.0,"tower":7.0,"rainmaker":6.0,"clam":6.0},{"name":"フルイドV","type":"ストリンガー","sub":"ロボットボム","special":"ウルトラハンコ","good":"カバー,塗り","bad":"ヘイト買い,潜伏キル","position":"中後","range":5.3,"easy":4.0,"total":6.25,"area":5.0,"tower":6.0,"rainmaker":9.0,"clam":5.0},{"name":"フルイドVカスタム","type":"ストリンガー","sub":"ポイントセンサー","special":"ホップソナー","good":"カバー,塗り","bad":"ヘイト買い,潜伏キル","position":"中後","range":5.3,"easy":4.0,"total":5.75,"area":5.0,"tower":5.0,"rainmaker":8.0,"clam":5.0},{"name":"ジムワイパー","type":"ワイパー","sub":"クイックボム","special":"ショクワンダー","good":"キル,ヘイト買い","bad":"","position":"前中","range":3.8,"easy":3.0,"total":7.75,"area":7.0,"tower":8.0,"rainmaker":8.0,"clam":8.0},{"name":"ジムワイパー・ヒュー","type":"ワイパー","sub":"ポイズンミスト","special":"カニタンク","good":"キル,維持","bad":"","position":"中","range":3.8,"easy":4.0,"total":7.0,"area":7.0,"tower":7.0,"rainmaker":7.0,"clam":7.0},{"name":"ジムワイパー封","type":"ワイパー","sub":"ロボットボム","special":"ナイスダマ","good":"キル","bad":"","position":"前中","range":3.8,"easy":5.0,"total":7.5,"area":8.0,"tower":8.0,"rainmaker":7.0,"clam":7.0},{"name":"ドライブワイパー","type":"ワイパー","sub":"トーピード","special":"ウルトラハンコ","good":"カバー,キル","bad":"","position":"前中","range":3.0,"easy":2.0,"total":6.0,"area":5.0,"tower":6.0,"rainmaker":7.0,"clam":6.0},{"name":"ドライブワイパーデコ","type":"ワイパー","sub":"ジャンプビーコン","special":"マルチミサイル","good":"強スペ回し,維持,裏取り","bad":"","position":"前中","range":3.0,"easy":1.0,"total":5.25,"area":5.0,"tower":6.0,"rainmaker":4.0,"clam":6.0},{"name":"ドライブワイパーRUST","type":"ワイパー","sub":"カーリングボム","special":"ウルトラショット","good":"キル,強スペ回し","bad":"","position":"前中","range":3.0,"easy":2.0,"total":5.0,"area":4.0,"tower":4.0,"rainmaker":6.0,"clam":6.0},{"name":"デンタルワイパーミント","type":"ワイパー","sub":"キューバンボム","special":"グレートバリア","good":"キル,ヘイト買い,維持","bad":"","position":"前","range":3.1,"easy":6.0,"total":8.0,"area":8.0,"tower":9.0,"rainmaker":7.0,"clam":8.0},{"name":"デンタルワイパースミ","type":"ワイパー","sub":"スプラッシュシールド","special":"ジェットパック","good":"キル,強スペ回し,維持","bad":"","position":"前中","range":3.1,"easy":5.0,"total":7.0,"area":7.0,"tower":6.0,"rainmaker":9.0,"clam":6.0}];
 const $ = id => document.getElementById(id);
-
-// Leannyの公開ゲームデータからブキ画像のRowIdを取得する。画像取得に失敗しても抽選自体は動作する。
-const IMAGE_DATA_URL = 'https://leanny.github.io/splat3/data/mush/1110/WeaponInfoMain.json';
-const IMAGE_BASE_URL = 'https://leanny.github.io/splat3/images/weapon_flat/Path_Wst_';
-function normalizeLabel(value) { return String(value || '').toLowerCase().replace(/[\s　・･._’'’「」【】()（）-]/g, ''); }
-function findWeaponImage(item) {
-  if (!imageRows.length) return '';
-  const names = [item.name?.ja_JP, item.name?.en_US].filter(Boolean).map(normalizeLabel);
-  const row = imageRows.find(x => names.includes(normalizeLabel(x.Label || x.Name || x.name)));
-  if (!row || row.__RowId == null) return '';
-  return IMAGE_BASE_URL + encodeURIComponent(row.__RowId) + '.png';
+const iconByType = {'シューター':'🔫','ブラスター':'💥','ローラー':'🖌️','フデ':'🖌️','チャージャー':'🎯','スロッシャー':'🪣','スピナー':'⚙️','マニューバー':'🔫','シェルター':'☂️','ストリンガー':'🏹','ワイパー':'⚔️'};
+function positions(w){return [...(w.position||'')].filter(x=>['前','中','後'].includes(x)).map(x=>({'前':'前衛','中':'中衛','後':'後衛'}[x]));}
+function roleLabel(w){return positions(w).join('・')||'役割不明';}
+function roleScore(team){
+ const roles=team.map(positions);
+ const front=roles.filter(a=>a.includes('前衛')).length;
+ const mid=roles.filter(a=>a.includes('中衛')).length;
+ const back=roles.filter(a=>a.includes('後衛')).length;
+ let s=0;
+ if(front>=1)s+=4;
+ if(mid>=1)s+=2;
+ if(back>=1)s+=2;
+ if(back>=2)s-=100;
+ if(front===0)s-=8;
+ const ranges=team.map(w=>w.range);
+ if(Math.max(...ranges)-Math.min(...ranges)>=1.5)s+=1.5;
+ return s;
 }
-
-function roleAndStats(item) {
-  const type = item.type?.key || '';
-  const name = item.name?.ja_JP || '';
-  const main = item.main || '';
-  const r = Number(item.matching_range) || 12;
-  // stat.inkのmatching_rangeを、表示用の5段階の射程に変換
-  const range = Math.max(1, Math.min(5, Math.round((r - 7) / 4.2) + 1));
-  const frontTypes = ['roller','brush','maneuver','splatana'];
-  const backTypes = ['charger','stringer'];
-  let role;
-  if (backTypes.includes(type) || r >= 22) role = '後衛';
-  else if (frontTypes.includes(type) || r <= 11.5) role = '前衛';
-  else role = '中衛';
-
-  // 塗り性能の目安。塗りが得意な代表的なメインを高めに設定
-  const highPaint = ['wakaba','promodeler_mg','promodeler_rg','promodeler_sai','nzap85','nzap89','bold','bold_neo','pablo','pablo_hue','lact450','lact450_deco','lact450_milk','variable_roller','dynamo_roller','wide_roller','wide_roller_collabo','furuido','furuido_custom','splash_o_matic'];
-  const lowPaint = ['liter4k','liter4k_custom','liter4k_scope','liter4k_scope_custom','longblaster','longblaster_custom','explosher','hydra','prime','prime_collabo','prime_frzn'];
-  let paint = highPaint.some(k => main.includes(k)) ? 5 : lowPaint.some(k => main.includes(k)) ? 2 : 3;
-  if (type === 'shooter' && r <= 13.5 && paint < 4) paint = 4;
-  if (type === 'roller' && /ワイド|ヴァリアブル|ダイナモ/.test(name)) paint = 5;
-  if (type === 'stringer' && /LACT|フルイド/.test(name)) paint = 5;
-  if (type === 'charger' && /R-PEN/.test(name)) paint = 4;
-  return { role, paint, range, type, main, name, sub: item.sub?.name?.ja_JP || '', special: item.special?.name?.ja_JP || '', key: item.key };
+function teamScore(team,mode){
+ const role=roleScore(team);
+ const evals=team.map(w=>Number(w[mode])||0);
+ const avg=evals.reduce((a,b)=>a+b,0)/evals.length;
+ const range=team.map(w=>w.range);
+ const ease=team.reduce((a,w)=>a+(Number(w.easy)||0),0)/team.length;
+ return role+avg*1.6+ease*.15+(Math.max(...range)-Math.min(...range))*.25;
 }
-
-function normalizeData(data) {
-  const list = data.filter(item => {
-    const name = item.name?.ja_JP || '';
-    const key = item.key || '';
-    return name && !name.includes('クマサン印') && !key.startsWith('kuma_') && item.type?.key;
-  }).map(item => ({...roleAndStats(item)}));
-  // APIの重複レコードをキーで除外
-  const unique = new Map();
-  list.forEach(w => unique.set(w.key, w));
-  return [...unique.values()].map(w => ({...w, image: findWeaponImage(w)}));
+function createTeam(){
+ let best=-Infinity,candidates=[];
+ for(let i=0;i<1800;i++){
+  const team=[];const pool=[...weapons];
+  while(team.length<3&&pool.length){const idx=Math.floor(Math.random()*pool.length);team.push(pool.splice(idx,1)[0]);}
+  if(team.length!==3)continue;
+  const back=team.filter(w=>positions(w).includes('後衛')).length;
+  if(back>=2)continue;
+  const s=teamScore(team,$('mode').value);
+  if(s>best){best=s;candidates=[team];}
+  else if(s>=best-.8)candidates.push(team);
+ }
+ if(!candidates.length){return [...weapons].sort(()=>Math.random()-.5).slice(0,3);}
+ return candidates[Math.floor(Math.random()*candidates.length)];
 }
-
-function score(team) {
-  const roles = team.map(w => w.role);
-  const paint = team.reduce((sum,w) => sum + w.paint, 0);
-  const ranges = team.map(w => w.range);
-  const longCount = team.filter(w => w.range >= 4).length;
-  const shortCount = team.filter(w => w.range <= 2).length;
-  let s = 0;
-  if (roles.includes('前衛')) s += 3;
-  if (roles.includes('中衛')) s += 2;
-  if (roles.includes('後衛')) s += 3;
-  if (paint >= 10) s += 4;
-  else if (paint >= 8) s += 2;
-  if (Math.max(...ranges) - Math.min(...ranges) >= 2) s += 2;
-  if (longCount >= 1) s += 2;
-  if (shortCount >= 1) s += 1;
-  // 後衛が2人以上の編成は createTeam() 側で除外する。
-  // 前衛3人の編成は許可する（前衛に偏る編成も遊びの幅として残す）。
-  if (paint <= 6) s -= 4;
-  return s;
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function stars(n){const v=Math.max(0,Math.min(10,Number(n)||0));return `${v}/10`;}
+function render(){
+ const team=createTeam();
+ $('team').innerHTML=team.map((w,i)=>`
+ <article class="player">
+  <h2>プレイヤー ${i+1}</h2>
+  <div class="weapon-icon" aria-hidden="true">${iconByType[w.type]||'🎮'}</div>
+  <div class="weapon">${esc(w.name)}</div>
+  <div class="type">${esc(w.type)}</div>
+  <div class="kit">サブ：${esc(w.sub)}<br>スペシャル：${esc(w.special)}</div>
+  <div class="role">${esc(roleLabel(w))}</div>
+  <div class="stats">射程：${esc(w.range)}　｜　扱いやすさ：${stars(w.easy)}<br>総合評価：${esc(w.total)}/10</div>
+  <div class="details"><b>得意：</b>${esc(w.good||'—')}<br><b>苦手：</b>${esc(w.bad||'—')}<br><b>評価：</b>エリア ${esc(w.area)} ／ ヤグラ ${esc(w.tower)} ／ ホコ ${esc(w.rainmaker)} ／ アサリ ${esc(w.clam)}</div>
+ </article>`).join('');
+ const pos=team.map(positions);
+ const f=pos.filter(a=>a.includes('前衛')).length,m=pos.filter(a=>a.includes('中衛')).length,b=pos.filter(a=>a.includes('後衛')).length;
+ const modeName=$('mode').selectedOptions[0].textContent;
+ const avg=(team.reduce((s,w)=>s+(Number(w[$('mode').value])||0),0)/3).toFixed(2);
+ $('summary').innerHTML=`編成バランス：前衛 ${f}人分 ／ 中衛 ${m}人分 ／ 後衛 ${b}人分<br>${esc(modeName)}の平均評価：${avg}　｜　武器データ：${weapons.length}種`;
+ $('status').textContent='武器データ読み込み完了。オフラインでも抽選できます。';
 }
-
-function createTeam() {
-  if (weapons.length < 3) return [];
-  let bestScore = -Infinity;
-  let candidates = [];
-  // ランダムな候補を多数試し、上位の編成からランダムに選ぶ
-  for (let i = 0; i < 1400; i++) {
-    const team = [];
-    const used = new Set();
-    while (team.length < 3) {
-      const w = weapons[Math.floor(Math.random() * weapons.length)];
-      if (!used.has(w.key)) { used.add(w.key); team.push(w); }
-    }
-    // 後衛2人以上は不可。前衛3人・中衛多めなどは抽選対象に残す。
-    if (team.filter(w => w.role === '後衛').length >= 2) continue;
-    const s = score(team);
-    if (s > bestScore) { bestScore = s; candidates = [team]; }
-    else if (s >= bestScore - 1) candidates.push(team);
-  }
-  return candidates[Math.floor(Math.random() * candidates.length)];
-}
-
-function renderTeam() {
-  const team = createTeam();
-  if (team.length !== 3) return;
-  $('team').innerHTML = team.map((w,i) => `
-    <div class="player">
-      <h2>プレイヤー ${i+1}</h2>
-      <img class="weapon-image" src="${escapeHtml(w.image || '')}" alt="${escapeHtml(w.name)}のイラスト" ${w.image ? '' : 'hidden'} loading="lazy" onerror="this.hidden=true"><div class="weapon">${escapeHtml(w.name)}</div>
-      <div class="kit">${escapeHtml(w.sub)}<br>＋ ${escapeHtml(w.special)}</div>
-      <div class="role">${w.role}</div>
-      <div class="stats">塗り性能：${'★'.repeat(w.paint)}${'☆'.repeat(5-w.paint)}<br>射程：${'★'.repeat(w.range)}${'☆'.repeat(5-w.range)}</div>
-    </div>`).join('');
-  const roles = team.map(w=>w.role);
-  const paint = team.reduce((s,w)=>s+w.paint,0);
-  const minRange = Math.min(...team.map(w=>w.range));
-  const maxRange = Math.max(...team.map(w=>w.range));
-  $('summary').innerHTML = `編成バランス：前衛 ${roles.filter(r=>r==='前衛').length}人 ／ 中衛 ${roles.filter(r=>r==='中衛').length}人 ／ 後衛 ${roles.filter(r=>r==='後衛').length}人<br>塗り性能合計：${paint}/15　｜　射程幅：${minRange}〜${maxRange}`;
-}
-function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-async function init() {
-  try {
-    const response = await fetch(API_URL, {cache:'no-cache'});
-    if (!response.ok) throw new Error('API response ' + response.status);
-    const data = await response.json();
-    // 画像データは別取得。取得できなくても武器ルーレットは使える。
-    try {
-      const imageResponse = await fetch(IMAGE_DATA_URL, {cache:'no-cache'});
-      if (imageResponse.ok) imageRows = await imageResponse.json();
-    } catch (imageError) { console.warn('ブキ画像データを取得できませんでした', imageError); }
-    weapons = normalizeData(data);
-    if (weapons.length < 100) throw new Error('取得したブキ数が少なすぎます (' + weapons.length + ')');
-    $('status').textContent = `武器データ読み込み完了：${weapons.length}ブキセット`;
-    $('roll').disabled = false;
-    renderTeam();
-  } catch (error) {
-    $('team').innerHTML = '<div class="player" style="grid-column:1/-1"><div class="weapon">武器データを読み込めなかったよ</div><div class="kit">通信を確認してページを再読み込みしてね。</div></div>';
-    $('summary').textContent = 'データ取得に失敗しました。GitHub Pages上で開いて、インターネット接続を確認してください。';
-    $('status').textContent = 'エラー：' + error.message;
-  }
-}
-$('roll').addEventListener('click', renderTeam);
-init();
+$('roll').addEventListener('click',render);
+$('mode').addEventListener('change',render);
+render();
 </script>
-</body>
-</html>
+</body></html>
