@@ -45,43 +45,34 @@ const $ = id => document.getElementById(id);
 const iconByType = {'シューター':'🔫','ブラスター':'💥','ローラー':'🖌️','フデ':'🖌️','チャージャー':'🎯','スロッシャー':'🪣','スピナー':'⚙️','マニューバー':'🔫','シェルター':'☂️','ストリンガー':'🏹','ワイパー':'⚔️'};
 function positions(w){return [...(w.position||'')].filter(x=>['前','中','後'].includes(x)).map(x=>({'前':'前衛','中':'中衛','後':'後衛'}[x]));}
 function roleLabel(w){return positions(w).join('・')||'役割不明';}
-function roleScore(team){
- const roles=team.map(positions);
- const front=roles.filter(a=>a.includes('前衛')).length;
- const mid=roles.filter(a=>a.includes('中衛')).length;
- const back=roles.filter(a=>a.includes('後衛')).length;
- let s=0;
- if(front>=1)s+=4;
- if(mid>=1)s+=2;
- if(back>=1)s+=2;
- if(back>=2)s-=100;
- if(front===0)s-=8;
- const ranges=team.map(w=>w.range);
- if(Math.max(...ranges)-Math.min(...ranges)>=1.5)s+=1.5;
- return s;
+function splitJobs(text){
+ return String(text||'').split(/[,、\/・]/).map(x=>x.trim()).filter(Boolean);
 }
-function teamScore(team,mode){
- const role=roleScore(team);
- const evals=team.map(w=>Number(w[mode])||0);
- const avg=evals.reduce((a,b)=>a+b,0)/evals.length;
- const range=team.map(w=>w.range);
- const ease=team.reduce((a,w)=>a+(Number(w.easy)||0),0)/team.length;
- return role+avg*1.6+ease*.15+(Math.max(...range)-Math.min(...range))*.25;
+function hasTripleBadOverlap(team){
+ const counts={};
+ for(const w of team){
+  for(const job of new Set(splitJobs(w.bad))){counts[job]=(counts[job]||0)+1;}
+ }
+ return Object.values(counts).some(n=>n>=3);
 }
 function createTeam(){
- let best=-Infinity,candidates=[];
- for(let i=0;i<1800;i++){
-  const team=[];const pool=[...weapons];
-  while(team.length<3&&pool.length){const idx=Math.floor(Math.random()*pool.length);team.push(pool.splice(idx,1)[0]);}
+ // 評価値は抽選に一切使わない。全武器を同じ確率で3つ引き、
+ // 「後衛が2人以上」と「同じ苦手な仕事が3人全員に被る」場合だけ引き直す。
+ for(let i=0;i<5000;i++){
+  const team=[];
+  const pool=[...weapons];
+  while(team.length<3&&pool.length){
+   const idx=Math.floor(Math.random()*pool.length);
+   team.push(pool.splice(idx,1)[0]);
+  }
   if(team.length!==3)continue;
   const back=team.filter(w=>positions(w).includes('後衛')).length;
   if(back>=2)continue;
-  const s=teamScore(team,$('mode').value);
-  if(s>best){best=s;candidates=[team];}
-  else if(s>=best-.8)candidates.push(team);
+  if(hasTripleBadOverlap(team))continue;
+  return team;
  }
- if(!candidates.length){return [...weapons].sort(()=>Math.random()-.5).slice(0,3);}
- return candidates[Math.floor(Math.random()*candidates.length)];
+ // 念のためのフォールバック。評価値による選別はしない。
+ return [...weapons].sort(()=>Math.random()-.5).slice(0,3);
 }
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function stars(n){const v=Math.max(0,Math.min(10,Number(n)||0));return `${v}/10`;}
