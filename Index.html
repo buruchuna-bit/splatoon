@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スプラ3 武器編成ルーレット</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #171923;
+  color: white;
+  text-align: center;
+}
+h1 { font-size: 25px; margin-bottom: 8px; }
+.subtitle { color: #b9bdcc; font-size: 14px; }
+.team {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 850px;
+  margin: 25px auto;
+}
+.player {
+  background: #292d3e;
+  border-radius: 15px;
+  padding: 15px 6px;
+  border: 2px solid #474d64;
+}
+.player h2 { font-size: 14px; margin: 0 0 15px; color: #b9bdcc; }
+.weapon { font-size: 16px; font-weight: bold; overflow-wrap: anywhere; }
+.role { margin-top: 10px; font-size: 13px; color: #ffd85c; }
+.stats { font-size: 12px; color: #d2d5e2; margin-top: 8px; line-height: 1.7; }
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 15px 25px;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+}
+#roll { background: #d9ff43; color: #171923; }
+#roll:active { transform: scale(.97); }
+.note { max-width: 600px; margin: 25px auto; color: #b9bdcc; font-size: 12px; line-height: 1.8; }
+@media(max-width: 420px) {
+  body { padding: 12px; }
+  .team { gap: 6px; }
+  .player { padding: 12px 4px; }
+  .weapon { font-size: 14px; }
+}
+</style>
+</head>
+<body>
+<h1>🎮 スプラ3 武器編成ルーレット</h1>
+<div class="subtitle">3人の武器をランダムに決定！</div>
+
+<div class="team" id="team"></div>
+<button id="roll">🎲 編成を決める！</button>
+
+<div class="note">
+武器の役割・塗り性能は試作版の目安です。<br>
+実際の武器性能や編成評価は、今後調整できます。
+</div>
+
+<script>
+const weapons = [
+  {name:"スプラシューター", role:"前衛", paint:3, range:2},
+  {name:"わかばシューター", role:"前衛", paint:5, range:1},
+  {name:"プロモデラーMG", role:"前衛", paint:5, range:1},
+  {name:"N-ZAP85", role:"前衛", paint:4, range:2},
+  {name:"シャープマーカー", role:"前衛", paint:4, range:1},
+  {name:"ボールドマーカー", role:"前衛", paint:3, range:1},
+  {name:".52ガロン", role:"前衛", paint:2, range:2},
+  {name:"L3リールガン", role:"中衛", paint:4, range:3},
+  {name:"プライムシューター", role:"中衛", paint:2, range:4},
+  {name:"ジェットスイーパー", role:"後衛", paint:2, range:5},
+  {name:"96ガロン", role:"中衛", paint:2, range:4},
+  {name:"デュアルスイーパー", role:"中衛", paint:3, range:3},
+  {name:"スプラマニューバー", role:"前衛", paint:3, range:2},
+  {name:"クアッドホッパーブラック", role:"前衛", paint:2, range:2},
+  {name:"スプラローラー", role:"前衛", paint:3, range:1},
+  {name:"カーボンローラー", role:"前衛", paint:2, range:1},
+  {name:"ヴァリアブルローラー", role:"中衛", paint:5, range:2},
+  {name:"ダイナモローラー", role:"中衛", paint:5, range:3},
+  {name:"バケットスロッシャー", role:"中衛", paint:3, range:3},
+  {name:"ヒッセン", role:"前衛", paint:3, range:2},
+  {name:"オーバーフロッシャー", role:"中衛", paint:4, range:4},
+  {name:"エクスプロッシャー", role:"後衛", paint:5, range:5},
+  {name:"スプラチャージャー", role:"後衛", paint:2, range:5},
+  {name:"リッター4K", role:"後衛", paint:1, range:5},
+  {name:"14式竹筒銃・甲", role:"中衛", paint:2, range:4},
+  {name:"ソイチューバー", role:"後衛", paint:3, range:4},
+  {name:"スクイックリンα", role:"中衛", paint:2, range:3},
+  {name:"バレルスピナー", role:"後衛", paint:3, range:4},
+  {name:"ハイドラント", role:"後衛", paint:2, range:5},
+  {name:"クーゲルシュライバー", role:"後衛", paint:4, range:5},
+  {name:"ノーチラス47", role:"中衛", paint:2, range:4},
+  {name:"スプラマニューバーコラボ", role:"前衛", paint:3, range:2},
+  {name:"ホットブラスター", role:"前衛", paint:2, range:2},
+  {name:"ロングブラスター", role:"中衛", paint:1, range:3},
+  {name:"ラピッドブラスター", role:"中衛", paint:2, range:4},
+  {name:"クラッシュブラスター", role:"前衛", paint:3, range:2},
+  {name:"ノヴァブラスター", role:"前衛", paint:2, range:1},
+  {name:"パブロ", role:"前衛", paint:5, range:1},
+  {name:"ホクサイ", role:"前衛", paint:3, range:1},
+  {name:"スパッタリー", role:"前衛", paint:3, range:1},
+  {name:"ケルビン525", role:"中衛", paint:2, range:3},
+  {name:"キャンピングシェルター", role:"中衛", paint:3, range:3},
+  {name:"パラシェルター", role:"中衛", paint:3, range:2},
+  {name:"トライストリンガー", role:"後衛", paint:3, range:5},
+  {name:"LACT-450", role:"中衛", paint:5, range:3},
+  {name:"ドライブワイパー", role:"前衛", paint:4, range:2},
+  {name:"ジムワイパー", role:"前衛", paint:3, range:3},
+  {name:"フィンセント", role:"前衛", paint:3, range:2}
+];
+
+function score(team) {
+  const roles = team.map(w => w.role);
+  const paint = team.reduce((sum, w) => sum + w.paint, 0);
+  const range = team.reduce((sum, w) => sum + w.range, 0);
+  let value = 0;
+
+  if (roles.includes("前衛")) value += 3;
+  if (roles.includes("中衛")) value += 2;
+  if (roles.includes("後衛")) value += 3;
+  if (paint >= 9) value += 3;
+  if (range >= 8) value += 2;
+  if (roles.filter(r => r === "前衛").length >= 2) value += 1;
+  if (roles.filter(r => r === "後衛").length >= 2) value -= 3;
+
+  return value;
+}
+
+function createTeam() {
+  let bestTeam = [];
+  let bestScore = -Infinity;
+
+  for (let i = 0; i < 200; i++) {
+    const shuffled = [...weapons].sort(() => Math.random() - 0.5);
+    const team = shuffled.slice(0, 3);
+    const s = score(team) + Math.random() * 2;
+
+    if (s > bestScore) {
+      bestScore = s;
+      bestTeam = team;
+    }
+  }
+
+  return bestTeam;
+}
+
+function renderTeam() {
+  const team = createTeam();
+  document.getElementById("team").innerHTML = team.map((w, i) => `
+    <div class="player">
+      <h2>プレイヤー ${i + 1}</h2>
+      <div class="weapon">${w.name}</div>
+      <div class="role">${w.role}</div>
+      <div class="stats">塗り性能：${"★".repeat(w.paint)}<br>射程：${"★".repeat(w.range)}</div>
+    </div>
+  `).join("");
+}
+
+document.getElementById("roll").addEventListener("click", renderTeam);
+renderTeam();
+</script>
+</body>
+</html>
